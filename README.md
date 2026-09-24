@@ -2,14 +2,27 @@
 
 [![WeProxy — PHP proxy example](./assets/banner.png)](https://weproxy.io/?utm_source=github&utm_medium=referral&utm_campaign=php-proxy)
 
-[![Website](https://img.shields.io/badge/Website-weproxy.io-111111?style=for-the-badge)](https://weproxy.io/?utm_source=github&utm_medium=referral&utm_campaign=php-proxy) [![Integrations](https://img.shields.io/badge/Docs-Integrations-2563eb?style=for-the-badge)](https://weproxy.io/en/integrations?utm_source=github&utm_medium=referral&utm_campaign=php-proxy)
+[![Website](https://img.shields.io/badge/Website-weproxy.io-111111?style=for-the-badge)](https://weproxy.io/?utm_source=github&utm_medium=referral&utm_campaign=php-proxy)
+[![PHP](https://img.shields.io/badge/PHP-8.0%2B-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
+[![Integrations](https://img.shields.io/badge/Docs-Integrations-2563eb?style=for-the-badge)](https://weproxy.io/en/integrations?utm_source=github&utm_medium=referral&utm_campaign=php-proxy)
 
-Minimal PHP cURL example: request your exit IP through the [WeProxy](https://weproxy.io) HTTP proxy gateway.
+Route outbound HTTP(S) through [WeProxy](https://weproxy.io) using **PHP cURL** — the same stack most PHP scrapers, WordPress jobs, and CLI workers already ship with.
+
+---
+
+## What this demo does
+
+1. Reads gateway settings from the environment  
+2. Configures `CURLOPT_PROXY` + `CURLOPT_PROXYUSERPWD`  
+3. Requests `https://api.ipify.org`  
+4. Prints the exit IP (or a clear error)
+
+No Composer packages required — only the `curl` extension.
 
 ## Requirements
 
-- PHP 8.0+ with `curl` extension
-- WeProxy credentials from [my.we1.town](https://my.we1.town)
+- PHP **8.0+** with `curl` enabled (`php -m | findstr curl`)  
+- WeProxy user/password from [my.we1.town](https://my.we1.town)  
 
 ## Setup
 
@@ -17,11 +30,14 @@ Minimal PHP cURL example: request your exit IP through the [WeProxy](https://wep
 cp .env.example .env
 ```
 
-Export variables (PHP does not load `.env` automatically in this minimal sample):
+This minimal sample does **not** auto-load `.env`. Export variables in your shell:
 
 ```bash
 export WEPROXY_USER="your-user"
 export WEPROXY_PASS="your-pass"
+# optional overrides:
+# export WEPROXY_HOST=gw.weproxy.com.tr
+# export WEPROXY_PORT=8989
 ```
 
 PowerShell:
@@ -31,20 +47,13 @@ $env:WEPROXY_USER="your-user"
 $env:WEPROXY_PASS="your-pass"
 ```
 
-Gateway defaults:
-
-```text
-Host: gw.weproxy.com.tr
-Port: 8989
-```
-
 ## Run
 
 ```bash
 php src/check-ip.php
 ```
 
-## Code
+## Core snippet
 
 ```php
 <?php
@@ -56,23 +65,58 @@ curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 echo curl_exec($ch);
 ```
 
-Full script: [`src/check-ip.php`](./src/check-ip.php).
+Production-ready version with timeouts and exit codes: [`src/check-ip.php`](./src/check-ip.php).
 
-## Residential vs datacenter
+### Useful cURL options for proxies
 
-Point the same gateway at the package credentials you bought — e.g. [rotating residential](https://weproxy.io/en/proxies/rotating-ipv4-residential) or [rotating datacenter](https://weproxy.io/en/proxies/rotating-ipv4-datacenter). Host and port do not change.
+| Option | Purpose |
+| --- | --- |
+| `CURLOPT_PROXY` | `host:port` |
+| `CURLOPT_PROXYUSERPWD` | `user:pass` |
+| `CURLOPT_PROXYTYPE` | `CURLPROXY_HTTP` (default here) |
+| `CURLOPT_CONNECTTIMEOUT` | Fail fast on dead gateways |
+| `CURLOPT_TIMEOUT` | Cap total wait |
 
-SOCKS5 is only for packages that enable it in the panel; this sample uses HTTP proxy mode.
+For SOCKS5 packages, switch `CURLOPT_PROXYTYPE` to the matching `CURLPROXY_SOCKS5` constant **only if** the panel enables SOCKS for your line.
 
-## Links
+## Drop into frameworks
 
-- [WeProxy](https://weproxy.io)
-- [Pricing](https://weproxy.io/en/pricing)
-- [Integrations](https://weproxy.io/en/integrations)
+- **Plain PHP / CLI cron** — call the script or copy the options into your existing `curl_init` flow  
+- **Laravel HTTP client** — configure a Guzzle handler stack with proxy URL `http://USER:PASS@gw.weproxy.com.tr:8989`  
+- **Guzzle directly** — `'proxy' => 'http://USER:PASS@gw.weproxy.com.tr:8989'`  
 
-## Suggested GitHub topics
+Product choice (residential vs datacenter) is entirely in the **credentials**, not in PHP code. See [Pricing](https://weproxy.io/en/pricing) and [Rotating residential](https://weproxy.io/en/proxies/rotating-ipv4-residential).
 
-`php` · `curl` · `proxy` · `http-proxy` · `residential-proxy` · `socks5`
+## Troubleshooting
+
+| Issue | Fix |
+| --- | --- |
+| `curl` class missing | Install `php-curl` / enable extension |
+| Empty body + error string | Print `curl_error($ch)`; check auth |
+| SSL complaints to target | Usually unrelated to proxy; verify CA bundle |
+| Works in browser tools only | Confirm CLI uses the same env user/pass |
+
+Baseline without PHP:
+
+```bash
+curl -x http://USER:PASSWORD@gw.weproxy.com.tr:8989 https://api.ipify.org
+```
+
+## Project layout
+
+```text
+php-proxy/
+├── assets/banner.png
+├── src/check-ip.php
+├── .env.example
+└── README.md
+```
+
+## Related
+
+- [nodejs-proxy](https://github.com/we1town-dev/nodejs-proxy) · [python-proxy](https://github.com/we1town-dev/python-proxy)  
+- [paid-proxy-servers](https://github.com/we1town-dev/paid-proxy-servers)  
+- [weproxy.io/integrations](https://weproxy.io/en/integrations)  
 
 ## License
 
