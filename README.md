@@ -114,8 +114,8 @@ php-proxy/
 
 ## Related
 
-- [nodejs-proxy](https://github.com/we1town-dev/nodejs-proxy) · [python-proxy](https://github.com/we1town-dev/python-proxy)  
-- [paid-proxy-servers](https://github.com/we1town-dev/paid-proxy-servers)  
+- [nodejs-proxy](https://github.com/weproxy-io/nodejs-proxy) · [python-proxy](https://github.com/weproxy-io/python-proxy)  
+- [paid-proxy-servers](https://github.com/weproxy-io/paid-proxy-servers)  
 - [weproxy.io/integrations](https://weproxy.io/en/integrations)  
 
 ## License
